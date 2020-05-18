@@ -2,26 +2,37 @@ extern crate lettre;
 
 #[macro_use]
 extern crate log;
-
-use log::Level;
+#[macro_use]
+extern crate structopt;
 
 use structopt::StructOpt;
-use lettre::{SendableEmail, EmailAddress, Transport, Envelope, SmtpClient};
+use lettre::{Transport, SmtpClient};
 
 use lettre_email::*;
 
 use std::io;
 use std::io::prelude::*;
 
-/*
-#[derive(StructOpt)]
+/// Send a simple mail from stdin
+///
+/// To obtain logging information, redirect stdout to file.
+///
+/// INFO is the default.
+/// e.g.
+/// RUST_LOG=mailer=info ./mailer
+#[derive(StructOpt, Debug)]
 struct Cli {
+    #[structopt(short = "f", default_value = "")]
+    /// Specify the Return-Path address
+    return_path: String,
 }
-*/
-
 
 fn main() {
     env_logger::init();
+
+    trace!("Parsing arguments.");
+    let opt = Cli::from_args();
+    debug!("{:?}", opt);
 
     let mut from = "user@localhost".to_string();
     let mut cc = "".to_string();
@@ -54,17 +65,13 @@ fn main() {
     let _ = stdin.read_to_string(&mut msg);
     let msg = msg.trim();
     debug!("msg body: \n{}", msg);
-/*
-    let email = SendableEmail::new(
-        Envelope::new(
-            Some(EmailAddress::new(from.to_string()).unwrap()),
-            vec![EmailAddress::new(to.to_string()).unwrap()]
-            ).unwrap(),
-            "id".to_string(), //TODO?
-            msg.to_string().into_bytes(),
-        );
-    */
-    let ret_path = "bounces@example.com";
+
+    trace!("Setting Return-Path");
+    let ret_path = match opt.return_path.as_str() {
+        "" => { from.to_string() }
+        _ => {opt.return_path}
+    };
+
     let email = EmailBuilder::new()
         .to(to.to_string())
         .cc(cc)
