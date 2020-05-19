@@ -8,6 +8,27 @@ and can be piped around if needed.
 
 Optionally, the CLI accepts a `-f` argument that defines the `Return-Path`.
 
+example
+===
+```
+[devin@cert mailer]$ RUST_LOG=mailer cargo run -- -f bla@bounceme.com < test.mail
+   Compiling mailer v0.1.0 (/home/devin/src/mailer)
+    Finished dev [unoptimized + debuginfo] target(s) in 2.29s
+     Running `target/debug/mailer -f 'bla@bounceme.com'`
+[2020-05-19T09:08:34Z TRACE mailer] Parsing arguments.
+[2020-05-19T09:08:34Z DEBUG mailer] Cli { return_path: "bla@bounceme.com" }
+[2020-05-19T09:08:34Z TRACE mailer] Parsing header.
+[2020-05-19T09:08:34Z DEBUG mailer] field: subject, value: email subject!
+[2020-05-19T09:08:34Z DEBUG mailer] field: from, value: from@blu.com
+[2020-05-19T09:08:34Z DEBUG mailer] field: bcc, value: bcc@bla.com
+[2020-05-19T09:08:34Z DEBUG mailer] field: cc, value: cc@bla.com
+[2020-05-19T09:08:34Z TRACE mailer] Parsing body.
+[2020-05-19T09:08:34Z DEBUG mailer] msg body:
+    Email Content line 1
+    Email Content line 2
+[2020-05-19T09:08:34Z TRACE mailer] Setting Return-Path
+[2020-05-19T09:08:34Z INFO  mailer] succesfully sent. from: from@blu.com; to: devin@localhost; len: 41
+```
 
 references
 ===
