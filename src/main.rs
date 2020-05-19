@@ -1,17 +1,13 @@
-extern crate lettre;
-
 #[macro_use]
 extern crate log;
-#[macro_use]
 extern crate structopt;
-
-use structopt::StructOpt;
-use lettre::{Transport, SmtpClient};
-
-use lettre_email::*;
+extern crate lettre;
 
 use std::io;
 use std::io::prelude::*;
+use lettre::{SmtpClient, Transport};
+use lettre_email::*;
+use structopt::StructOpt;
 
 /// Send a simple mail from stdin
 ///
@@ -34,7 +30,7 @@ fn main() {
     let opt = Cli::from_args();
     debug!("{:?}", opt);
 
-    let mut from = "user@localhost".to_string();
+    let mut from = "".to_string();
     let mut cc = "".to_string();
     let mut bcc = "".to_string();
     let to = "devin@localhost"; //FIXME
@@ -43,7 +39,8 @@ fn main() {
     trace!("Parsing header.");
     for line in stdin.lock().lines() {
         let line = line.unwrap();
-        if line == "" { // Signalling separator between Headers and Body.
+        if line == "" {
+            // Signalling separator between Headers and Body.
             break;
         }
 
@@ -53,9 +50,15 @@ fn main() {
 
         debug!("field: {}, value: {}", field, value);
         match field.as_str() {
-            "from" => { from = value; }
-            "cc" => {cc = value;}
-            "bcc" => {bcc = value;}
+            "from" => {
+                from = value;
+            }
+            "cc" => {
+                cc = value;
+            }
+            "bcc" => {
+                bcc = value;
+            }
             _ => {} // This includes `subject`, `from`, `to`, etc..
         }
     }
@@ -68,8 +71,8 @@ fn main() {
 
     trace!("Setting Return-Path");
     let ret_path = match opt.return_path.as_str() {
-        "" => { from.to_string() }
-        _ => {opt.return_path}
+        "" => from.to_string(),
+        _ => opt.return_path,
     };
 
     let email = EmailBuilder::new()
@@ -86,7 +89,21 @@ fn main() {
     let mut mailer = SmtpClient::new_unencrypted_localhost().unwrap().transport();
 
     match mailer.send(email) {
-        Ok(_) => { info!("succesfully sent. from: {}; to: {}; len: {}", from, to, msg.len()); }
-        _ => { error!("sending failed. from: {}; to: {}; len: {}", from, to, msg.len()); }
+        Ok(_) => {
+            info!(
+                "succesfully sent. from: {}; to: {}; len: {}",
+                from,
+                to,
+                msg.len()
+            );
+        }
+        _ => {
+            error!(
+                "sending failed. from: {}; to: {}; len: {}",
+                from,
+                to,
+                msg.len()
+            );
+        }
     }
 }
